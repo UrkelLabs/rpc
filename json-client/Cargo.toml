@@ -1,5 +1,5 @@
 [package]
-name = "json-client"
+name = "rpc-json-client"
 version = "0.1.0"
 authors = ["kilpatty <sean@urkel.io>"]
 edition = "2018"
