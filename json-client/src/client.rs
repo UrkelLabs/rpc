@@ -10,6 +10,7 @@ use crate::error::Error;
 use hyper::Request;
 use hyper::Body;
 
+//@todo Auth does not work - fix that.
 //TODO this should implement some kind of trait that is exposed at the top level I think.
 //TODO right now this only uses http, we should make this extendable. TCP, UDP, Http, etc
 pub struct RpcClient {
@@ -18,7 +19,7 @@ pub struct RpcClient {
     password: Option<String>,
     id: Arc<Mutex<u64>>,
     //TODO we should make this runtime library.
-    client: Client<HttpConnector>,
+    // client: Client<HttpConnector>,
 }
 
 impl RpcClient {
@@ -28,7 +29,6 @@ impl RpcClient {
             user: None,
             password: None,
             id: Arc::new(Mutex::new(0)),
-            client: Client::new(),
         }
     }
 
@@ -80,27 +80,34 @@ impl RpcClient {
         let request_raw = serde_json::to_vec(body).unwrap(); //TODO
 
         // let request = Request::builder().method("POST").header("Content-Type", "application/json");
-        let mut request_builder = Request::builder();
-        request_builder.uri(&self.url).method("POST").header("Content-Type", "application/json");
+        // let mut request_builder = Request::builder();
+        let mut req = surf::post(&self.url).set_header("Content-Type", "application/json");
+            //@todo we might just want to set MIME here actually see: https://docs.rs/surf/1.0.2/surf/struct.Request.html#method.set_mime
+        // request_builder.uri(&self.url).method("POST").header("Content-Type", "application/json");
 
         if let Some(user) = &self.user {
             //TODO fix this. Need base64 encoding.
-            request_builder.header("Authorization", format!("{}{}", user, self.password.clone().unwrap()));
+            req = req.set_header("Authorization", format!("{}{}", user, self.password.clone().unwrap()));
         }
 
+        //@todo remove unwrap here
+        let req = req.body_json(body).unwrap();
+
+        let res: R = req.recv_json().await.unwrap();
+
         //TODO remove unwrap
-        let request = request_builder.body(Body::from(request_raw)).unwrap();
+        // let request = request_builder.body(Body::from(request_raw)).unwrap();
 
 
         //TODO remove unwrap.
-        let res = self.client.request(request).await.unwrap();
+        // let res = self.client.request(request).await.unwrap();
 
         //TODO remove unwrap
-        let body = res.into_body().try_concat().await.unwrap();
+        // let body = res.into_body().try_concat().await.unwrap();
 
         //TODO remove unwrap
-        let rpc_res: R = serde_json::from_slice(&body).unwrap();
+        // let rpc_res: R = serde_json::from_slice(&body).unwrap();
 
-        Ok(rpc_res)
+        Ok(res)
     }
 }
