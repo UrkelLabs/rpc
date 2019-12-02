@@ -1,14 +1,14 @@
+use crate::error::Error;
+use crate::RpcRequest;
+use crate::RpcResponse;
 use futures::lock::Mutex;
 use futures::stream::TryStreamExt;
 use hyper::client::HttpConnector;
-use hyper::Client;
-use std::sync::Arc;
-use serde_json::json;
-use crate::RpcRequest;
-use crate::RpcResponse;
-use crate::error::Error;
-use hyper::Request;
 use hyper::Body;
+use hyper::Client;
+use hyper::Request;
+use serde_json::json;
+use std::sync::Arc;
 
 //@todo Auth does not work - fix that.
 //TODO this should implement some kind of trait that is exposed at the top level I think.
@@ -57,7 +57,6 @@ impl RpcClient {
     }
 
     pub async fn send_request(&self, request: &RpcRequest) -> Result<RpcResponse, Error> {
-
         let response: RpcResponse = self.send_raw(&request).await?;
 
         if response.jsonrpc != None && response.jsonrpc != Some(From::from("2.0")) {
@@ -82,12 +81,15 @@ impl RpcClient {
         // let request = Request::builder().method("POST").header("Content-Type", "application/json");
         // let mut request_builder = Request::builder();
         let mut req = surf::post(&self.url).set_header("Content-Type", "application/json");
-            //@todo we might just want to set MIME here actually see: https://docs.rs/surf/1.0.2/surf/struct.Request.html#method.set_mime
+        //@todo we might just want to set MIME here actually see: https://docs.rs/surf/1.0.2/surf/struct.Request.html#method.set_mime
         // request_builder.uri(&self.url).method("POST").header("Content-Type", "application/json");
 
         if let Some(user) = &self.user {
             //TODO fix this. Need base64 encoding.
-            req = req.set_header("Authorization", format!("{}{}", user, self.password.clone().unwrap()));
+            req = req.set_header(
+                "Authorization",
+                format!("{}{}", user, self.password.clone().unwrap()),
+            );
         }
 
         //@todo remove unwrap here
@@ -97,7 +99,6 @@ impl RpcClient {
 
         //TODO remove unwrap
         // let request = request_builder.body(Body::from(request_raw)).unwrap();
-
 
         //TODO remove unwrap.
         // let res = self.client.request(request).await.unwrap();
