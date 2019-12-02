@@ -1,5 +1,5 @@
 use hyper::client::connect::Connect;
-use runtime::net::TcpStream;
+use async_std::net::TcpStream;
 
 pub struct InnerClient {}
 
