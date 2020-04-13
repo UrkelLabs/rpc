@@ -98,6 +98,8 @@ impl RpcClient {
         //@todo remove unwrap here
         let req = req.body_json(body)?;
 
+        dbg!(&req);
+
         let res: R = req.recv_json().await.unwrap();
 
         Ok(res)
