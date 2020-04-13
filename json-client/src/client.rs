@@ -1,10 +1,12 @@
 use crate::error::Error;
 use crate::RpcRequest;
 use crate::RpcResponse;
+use async_std::task::sleep;
 use futures::lock::Mutex;
 use log::{info, warn};
 use serde_json::json;
 use std::sync::Arc;
+use std::time::Duration;
 
 //@todo Auth does not work - fix that.
 //TODO this should implement some kind of trait that is exposed at the top level I think.
@@ -109,6 +111,8 @@ impl RpcClient {
             if retries < retry_max {
                 retries += 1;
                 info!("Retrying request... Retry count: {}", retries);
+                //Currently just sleeps the amount of time of retries.
+                sleep(Duration::from_secs(retries)).await;
                 //Just to be explicit
                 continue;
             } else {
