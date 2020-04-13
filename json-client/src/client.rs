@@ -18,18 +18,16 @@ pub struct RpcClient {
     password: Option<String>,
     id: Arc<Mutex<u64>>,
     retry: bool,
-    //TODO we should make this runtime library.
-    // client: Client<HttpConnector>,
 }
 
 impl RpcClient {
-    pub fn new(url: &str) -> Self {
+    pub fn new(url: &str, user: Option<String>, password: Option<String>, retry: bool) -> Self {
         RpcClient {
             url: url.to_owned(),
-            user: None,
-            password: None,
+            user,
+            password,
             id: Arc::new(Mutex::new(0)),
-            retry: false,
+            retry,
         }
     }
 
