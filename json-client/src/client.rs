@@ -74,56 +74,49 @@ impl RpcClient {
         B: serde::ser::Serialize,
         R: for<'de> serde::de::Deserialize<'de>,
     {
-        // let retry_max = 5;
-        // let mut retries = 0;
+        let retry_max = 5;
+        let mut retries = 0;
         // Build request
         // let request_raw = serde_json::to_vec(body)?;
         // let request_raw = serde_json::to_vec(body).unwrap(); //TODO
 
         // let request = Request::builder().method("POST").header("Content-Type", "application/json");
         // let mut request_builder = Request::builder();
-        // loop {
-        let mut req = surf::post(&self.url).set_header("Content-Type", "application/json");
-        //@todo we might just want to set MIME here actually see: https://docs.rs/surf/1.0.2/surf/struct.Request.html#method.set_mime
-        // request_builder.uri(&self.url).method("POST").header("Content-Type", "application/json");
+        loop {
+            let mut req = surf::post(&self.url).set_header("Content-Type", "application/json");
+            //@todo we might just want to set MIME here actually see: https://docs.rs/surf/1.0.2/surf/struct.Request.html#method.set_mime
+            // request_builder.uri(&self.url).method("POST").header("Content-Type", "application/json");
 
-        if let Some(user) = &self.user {
-            //TODO fix this. Need base64 encoding.
-            req = req.set_header(
-                "Authorization",
-                format!("{}{}", user, self.password.clone().unwrap()),
-            );
+            if let Some(user) = &self.user {
+                //TODO fix this. Need base64 encoding.
+                req = req.set_header(
+                    "Authorization",
+                    format!("{}{}", user, self.password.clone().unwrap()),
+                );
+            }
+
+            let req = req.body_json(body)?;
+
+            match req.recv_json().await {
+                Ok(response) => return Ok(response),
+                Err(e) => {
+                    warn!("RPC Request failed with error: {}", e);
+                    if !self.retry {
+                        return Err(Error::HttpError(e));
+                    }
+                }
+            }
+
+            if self.retry && retries < retry_max {
+                retries += 1;
+                info!("Retrying request... Retry count: {}", retries);
+                //Currently just sleeps the amount of time of retries.
+                sleep(Duration::from_secs(retries)).await;
+                //Just to be explicit
+                continue;
+            } else {
+                return Err(Error::FailedRetry);
+            }
         }
-
-        //@todo remove unwrap here
-        let req = req.body_json(body)?;
-
-        dbg!(&req);
-
-        let res: R = req.recv_json().await.unwrap();
-
-        Ok(res)
-
-        // match req.recv_json().await {
-        //     Ok(response) => return Ok(response),
-        //     Err(e) => {
-        //         warn!("RPC Request failed with error: {}", e);
-        //         if !self.retry {
-        //             return Err(Error::HttpError(e));
-        //         }
-        //     }
-        // }
-
-        //if self.retry && retries < retry_max {
-        //    retries += 1;
-        //    info!("Retrying request... Retry count: {}", retries);
-        //    //Currently just sleeps the amount of time of retries.
-        //    sleep(Duration::from_secs(retries)).await;
-        //    //Just to be explicit
-        //    continue;
-        //} else {
-        //    return Err(Error::FailedRetry);
-        //}
-        // }
     }
 }
