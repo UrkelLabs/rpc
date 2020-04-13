@@ -51,8 +51,7 @@ impl RpcClient {
     ) -> Result<T, Error> {
         let request = self.build_request(method, params).await;
 
-        //TODO remove unwrap
-        let response = self.send_request(&request).await.unwrap();
+        let response = self.send_request(&request).await?;
 
         Ok(response.into_result()?)
     }
@@ -105,7 +104,9 @@ impl RpcClient {
                 Ok(response) => return Ok(response),
                 Err(e) => {
                     warn!("RPC Request failed with error: {}", e);
-                    // break;
+                    if !self.retry {
+                        return Err(Error::HttpError(e));
+                    }
                 }
             }
 
