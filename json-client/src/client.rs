@@ -2,11 +2,7 @@ use crate::error::Error;
 use crate::RpcRequest;
 use crate::RpcResponse;
 use futures::lock::Mutex;
-use futures::stream::TryStreamExt;
-use hyper::client::HttpConnector;
-use hyper::Body;
-use hyper::Client;
-use hyper::Request;
+use log::{info, warn};
 use serde_json::json;
 use std::sync::Arc;
 
@@ -74,41 +70,50 @@ impl RpcClient {
         B: serde::ser::Serialize,
         R: for<'de> serde::de::Deserialize<'de>,
     {
+        let retry_max = 5;
+        let mut retries = 0;
         // Build request
         // let request_raw = serde_json::to_vec(body)?;
-        let request_raw = serde_json::to_vec(body).unwrap(); //TODO
+        // let request_raw = serde_json::to_vec(body).unwrap(); //TODO
 
         // let request = Request::builder().method("POST").header("Content-Type", "application/json");
         // let mut request_builder = Request::builder();
-        let mut req = surf::post(&self.url).set_header("Content-Type", "application/json");
-        //@todo we might just want to set MIME here actually see: https://docs.rs/surf/1.0.2/surf/struct.Request.html#method.set_mime
-        // request_builder.uri(&self.url).method("POST").header("Content-Type", "application/json");
+        loop {
+            let mut req = surf::post(&self.url).set_header("Content-Type", "application/json");
+            //@todo we might just want to set MIME here actually see: https://docs.rs/surf/1.0.2/surf/struct.Request.html#method.set_mime
+            // request_builder.uri(&self.url).method("POST").header("Content-Type", "application/json");
 
-        if let Some(user) = &self.user {
-            //TODO fix this. Need base64 encoding.
-            req = req.set_header(
-                "Authorization",
-                format!("{}{}", user, self.password.clone().unwrap()),
-            );
+            if let Some(user) = &self.user {
+                //TODO fix this. Need base64 encoding.
+                req = req.set_header(
+                    "Authorization",
+                    format!("{}{}", user, self.password.clone().unwrap()),
+                );
+            }
+
+            //@todo remove unwrap here
+            let req = req.body_json(body)?;
+
+            // let res: R = req.recv_json().await?;
+
+            match req.recv_json().await {
+                Ok(response) => return Ok(response),
+                Err(e) => {
+                    warn!("RPC Request failed with error: {}", e);
+                    // break;
+                }
+            }
+
+            //if retry == enabled (something like this) && retries < retry_max
+            //have all this come from config.
+            if retries < retry_max {
+                retries += 1;
+                info!("Retrying request... Retry count: {}", retries);
+                //Just to be explicit
+                continue;
+            } else {
+                return Err(Error::FailedRetry);
+            }
         }
-
-        //@todo remove unwrap here
-        let req = req.body_json(body).unwrap();
-
-        let res: R = req.recv_json().await.unwrap();
-
-        //TODO remove unwrap
-        // let request = request_builder.body(Body::from(request_raw)).unwrap();
-
-        //TODO remove unwrap.
-        // let res = self.client.request(request).await.unwrap();
-
-        //TODO remove unwrap
-        // let body = res.into_body().try_concat().await.unwrap();
-
-        //TODO remove unwrap
-        // let rpc_res: R = serde_json::from_slice(&body).unwrap();
-
-        Ok(res)
     }
 }

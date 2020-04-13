@@ -11,6 +11,8 @@ pub enum Error {
     //TODO rename
     IdMismatch,
     Json(serde_json::Error),
+    FailedRetry,
+    // FailedRetries(
 }
 
 impl From<serde_json::Error> for Error {
