@@ -11,11 +11,13 @@ use std::time::Duration;
 //@todo Auth does not work - fix that.
 //TODO this should implement some kind of trait that is exposed at the top level I think.
 //TODO right now this only uses http, we should make this extendable. TCP, UDP, Http, etc
+//@todo we need a Client builder syntax so that we can enable retry and disable it.
 pub struct RpcClient {
     url: String,
     user: Option<String>,
     password: Option<String>,
     id: Arc<Mutex<u64>>,
+    retry: bool,
     //TODO we should make this runtime library.
     // client: Client<HttpConnector>,
 }
@@ -27,6 +29,7 @@ impl RpcClient {
             user: None,
             password: None,
             id: Arc::new(Mutex::new(0)),
+            retry: false,
         }
     }
 
@@ -106,9 +109,7 @@ impl RpcClient {
                 }
             }
 
-            //if retry == enabled (something like this) && retries < retry_max
-            //have all this come from config.
-            if retries < retry_max {
+            if self.retry && retries < retry_max {
                 retries += 1;
                 info!("Retrying request... Retry count: {}", retries);
                 //Currently just sleeps the amount of time of retries.
