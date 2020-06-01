@@ -12,7 +12,7 @@ pub enum Error {
     IdMismatch,
     Json(serde_json::Error),
     FailedRetry,
-    HttpError(std::boxed::Box<dyn std::error::Error + std::marker::Send + std::marker::Sync>),
+    HttpError(http_types::Error),
     // FailedRetries(
 }
 
