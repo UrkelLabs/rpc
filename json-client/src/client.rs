@@ -81,7 +81,7 @@ impl RpcClient {
         // let request = Request::builder().method("POST").header("Content-Type", "application/json");
         // let mut request_builder = Request::builder();
         loop {
-            let mut req = surf::post(&self.url).set_header("Content-Type", "application/json");
+            let mut req = surf::post(&self.url);
             //@todo we might just want to set MIME here actually see: https://docs.rs/surf/1.0.2/surf/struct.Request.html#method.set_mime
             // request_builder.uri(&self.url).method("POST").header("Content-Type", "application/json");
 
