@@ -72,5 +72,21 @@ impl RpcError {
     }
 }
 
+impl std::fmt::Display for Error {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match *self {
+            Error::ParseError(ref e) => write!(f, "Parse Error: {}", e),
+            //@todo
+            Error::Rpc(ref e) => write!(f, "RPC Error: {}", e.message),
+            Error::Timeout => write!(f, "Timeout error"),
+            Error::VersionMismatch => write!(f, "Version Mistmatch"),
+            Error::IdMismatch => write!(f, "ID Mismatch"),
+            Error::Json(ref e) => write!(f, "JSON Error: {}", e),
+            Error::FailedRetry => write!(f, "Failed Retry"),
+            Error::HttpError(ref e) => write!(f, "HTTP Error: {}", e),
+        }
+    }
+}
+
 //JSONRPCERROR should be the error we expose from this specific package.
 // JsonRpcError(Error),
