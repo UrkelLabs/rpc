@@ -88,5 +88,21 @@ impl std::fmt::Display for Error {
     }
 }
 
+impl std::error::Error for Error {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        match *self {
+            Error::ParseError(_) => None,
+            //@todo
+            Error::Rpc(_) => None,
+            Error::Timeout => None,
+            Error::VersionMismatch => None,
+            Error::IdMismatch => None,
+            Error::Json(ref e) => Some(e),
+            Error::FailedRetry => None,
+            Error::HttpError(_) => None,
+        }
+    }
+}
+
 //JSONRPCERROR should be the error we expose from this specific package.
 // JsonRpcError(Error),
