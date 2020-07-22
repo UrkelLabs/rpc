@@ -3,6 +3,7 @@ use crate::RpcRequest;
 use crate::RpcResponse;
 use async_std::task::sleep;
 use futures::lock::Mutex;
+use isahc::Error as IsahcError;
 use log::{info, warn};
 use serde_json::json;
 use std::sync::Arc;
@@ -18,16 +19,24 @@ pub struct RpcClient {
     password: Option<String>,
     id: Arc<Mutex<u64>>,
     retry: bool,
+    backup_urls: Vec<String>,
 }
 
 impl RpcClient {
-    pub fn new(url: &str, user: Option<String>, password: Option<String>, retry: bool) -> Self {
+    pub fn new(
+        url: &str,
+        user: Option<String>,
+        password: Option<String>,
+        retry: bool,
+        backup_urls: Vec<String>,
+    ) -> Self {
         RpcClient {
             url: url.to_owned(),
             user,
             password,
             id: Arc::new(Mutex::new(0)),
             retry,
+            backup_urls,
         }
     }
 
@@ -80,8 +89,12 @@ impl RpcClient {
 
         // let request = Request::builder().method("POST").header("Content-Type", "application/json");
         // let mut request_builder = Request::builder();
+        let mut current_url = self.url.clone();
+        //@todo current only supports 1 backup, let's improve this.
+        let current_backup_url = 0;
+
         loop {
-            let mut req = surf::post(&self.url);
+            let mut req = surf::post(&current_url);
             //@todo we might just want to set MIME here actually see: https://docs.rs/surf/1.0.2/surf/struct.Request.html#method.set_mime
             // request_builder.uri(&self.url).method("POST").header("Content-Type", "application/json");
 
@@ -99,6 +112,18 @@ impl RpcClient {
                 Ok(response) => return Ok(response),
                 Err(e) => {
                     warn!("RPC Request failed with error: {}", e);
+
+                    //@todo define more conditions in which we'd want to try the backup URL. For
+                    //now, we just use timeouts.
+                    if let Some(err) = &e.downcast_ref::<IsahcError>() {
+                        match err {
+                            IsahcError::Timeout => {
+                                current_url = self.backup_urls[current_backup_url].clone();
+                            }
+                            _ => {}
+                        }
+                    }
+
                     if !self.retry {
                         return Err(Error::HttpError(e));
                     }
