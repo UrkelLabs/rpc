@@ -22,6 +22,12 @@ impl From<serde_json::Error> for Error {
     }
 }
 
+impl From<http_types::Error> for Error {
+    fn from(e: http_types::Error) -> Self {
+        Self::HttpError(e)
+    }
+}
+
 //TODO pull this out into the main package into rpc-types something like that.
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 pub struct RpcError {

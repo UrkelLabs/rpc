@@ -100,17 +100,21 @@ impl RpcClient {
 
             if let Some(user) = &self.user {
                 //TODO fix this. Need base64 encoding.
-                req = req.set_header(
+                req = req.header(
                     "Authorization",
                     format!("{}{}", user, self.password.clone().unwrap()),
                 );
             }
 
-            let req = req.body_json(body)?;
+            let req = req.body(surf::Body::from_json(body)?);
 
             dbg!(&req);
 
-            match req.recv_json().await {
+            let mut res = req.send().await?;
+
+            dbg!(&res);
+
+            match res.body_json().await {
                 Ok(response) => return Ok(response),
                 Err(e) => {
                     warn!("RPC Request failed with error: {}", e);
