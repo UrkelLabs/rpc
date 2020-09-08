@@ -108,13 +108,7 @@ impl RpcClient {
 
             let req = req.body(surf::Body::from_json(body)?);
 
-            dbg!(&req);
-
             let mut res = req.send().await?;
-
-            dbg!(&res);
-
-            dbg!(&res.body_string().await);
 
             match res.body_json().await {
                 Ok(response) => return Ok(response),
