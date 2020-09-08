@@ -108,6 +108,8 @@ impl RpcClient {
 
             let req = req.body_json(body)?;
 
+            dbg!(&req);
+
             match req.recv_json().await {
                 Ok(response) => return Ok(response),
                 Err(e) => {
