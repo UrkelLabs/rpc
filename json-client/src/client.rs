@@ -114,6 +114,8 @@ impl RpcClient {
 
             dbg!(&res);
 
+            dbg!(&res.body_string().await);
+
             match res.body_json().await {
                 Ok(response) => return Ok(response),
                 Err(e) => {
