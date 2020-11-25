@@ -9,10 +9,10 @@ use serde_json::json;
 use std::sync::Arc;
 use std::time::Duration;
 
-//@todo Auth does not work - fix that.
 //TODO this should implement some kind of trait that is exposed at the top level I think.
 //TODO right now this only uses http, we should make this extendable. TCP, UDP, Http, etc
-//@todo we need a Client builder syntax so that we can enable retry and disable it.
+//@todo we need to throw all this stuff into an inner trait and then create RCs to it so that we
+//can make this cloneable.
 pub struct RpcClient {
     url: String,
     user: Option<String>,

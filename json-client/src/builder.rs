@@ -19,6 +19,12 @@ impl ClientBuilder {
         }
     }
 
+    pub fn with_user(mut self, username: &str, password: &str) -> Self {
+        self.user = Some(username.to_owned());
+        self.password = Some(password.to_owned());
+        self
+    }
+
     pub fn with_retry(mut self) -> Self {
         self.retry = true;
         self
