@@ -98,12 +98,16 @@ impl RpcClient {
             //@todo we might just want to set MIME here actually see: https://docs.rs/surf/1.0.2/surf/struct.Request.html#method.set_mime
             // request_builder.uri(&self.url).method("POST").header("Content-Type", "application/json");
 
-            if let Some(user) = &self.user {
-                //TODO fix this. Need base64 encoding.
-                req = req.header(
-                    "Authorization",
-                    format!("{}{}", user, self.password.clone().unwrap()),
-                );
+            if let Some(ref user) = self.user {
+                let mut auth = user.clone();
+                auth.push(':');
+                if let Some(ref pass) = self.password {
+                    auth.push_str(&pass[..]);
+                }
+
+                let value = format!("Basic {}", &base64::encode(auth.as_bytes()));
+
+                req = req.header("Authorization", value);
             }
 
             let req = req.body(surf::Body::from_json(body)?);
