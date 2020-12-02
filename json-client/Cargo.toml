@@ -3,6 +3,8 @@ name = "rpc-json-client"
 version = "0.1.0"
 authors = ["Urkel Engineering <engineering@urkellabs.com>"]
 edition = "2018"
+license = "MIT"
+description = "A generic rpc client that handles JSON"
 
 [dependencies]
 
