@@ -122,8 +122,8 @@ impl RpcClient {
                     //@todo define more conditions in which we'd want to try the backup URL. For
                     //now, we just use timeouts.
                     if let Some(err) = &e.downcast_ref::<IsahcError>() {
-                        match err {
-                            IsahcError::Timeout => {
+                        match err.kind() {
+                            isahc::error::ErrorKind::Timeout => {
                                 current_url = self.backup_urls[current_backup_url].clone();
                             }
                             _ => {}
