@@ -3,7 +3,7 @@ use crate::RpcRequest;
 use crate::RpcResponse;
 use async_std::task::sleep;
 use futures::lock::Mutex;
-use isahc::Error as IsahcError;
+use http_types::StatusCode;
 use log::{info, warn};
 use serde_json::json;
 use std::sync::Arc;
@@ -121,13 +121,8 @@ impl RpcClient {
 
                     //@todo define more conditions in which we'd want to try the backup URL. For
                     //now, we just use timeouts.
-                    if let Some(err) = &e.downcast_ref::<IsahcError>() {
-                        match err.kind() {
-                            isahc::error::ErrorKind::Timeout => {
-                                current_url = self.backup_urls[current_backup_url].clone();
-                            }
-                            _ => {}
-                        }
+                    if e.status() == StatusCode::RequestTimeout {
+                        current_url = self.backup_urls[current_backup_url].clone();
                     }
 
                     if !self.retry {

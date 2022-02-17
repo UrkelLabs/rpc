@@ -2,7 +2,7 @@
 name = "rpc-json-client"
 version = "0.1.2-alpha.0"
 authors = ["Urkel Engineering <engineering@urkellabs.com>"]
-edition = "2018"
+edition = "2021"
 license = "MIT"
 description = "A generic rpc client that handles JSON"
 
@@ -21,5 +21,4 @@ surf = "2.3.2"
 log = "0.4"
 http-types = "2.12.0"
 http-client = "6.5.1"
-isahc = { version = "1.5.1", default-features = false, features = ["http2"]  }
 base64 = "0.13"
