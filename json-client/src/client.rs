@@ -3,11 +3,11 @@ use crate::RpcRequest;
 use crate::RpcResponse;
 use async_std::task::sleep;
 use futures::lock::Mutex;
-use http_types::StatusCode;
 use log::{info, warn};
 use serde_json::json;
 use std::sync::Arc;
 use std::time::Duration;
+use surf::StatusCode;
 
 //TODO this should implement some kind of trait that is exposed at the top level I think.
 //TODO right now this only uses http, we should make this extendable. TCP, UDP, Http, etc

@@ -12,7 +12,7 @@ pub enum Error {
     IdMismatch,
     Json(serde_json::Error),
     FailedRetry,
-    HttpError(http_types::Error),
+    HttpError(surf::Error),
     // FailedRetries(
 }
 
@@ -22,8 +22,8 @@ impl From<serde_json::Error> for Error {
     }
 }
 
-impl From<http_types::Error> for Error {
-    fn from(e: http_types::Error) -> Self {
+impl From<surf::Error> for Error {
+    fn from(e: surf::Error) -> Self {
         Self::HttpError(e)
     }
 }
